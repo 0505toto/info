@@ -178,3 +178,43 @@ a:hover {
     outline: 1px solid var(--accent-color);
     background-color: #333;
 }
+/* --- ここから追加 --- */
+
+/* マウスカーソルを乗せた時にセクションの背景色を変える */
+.draggable-section:hover {
+    background-color: #3c3c3c;
+}
+
+/* 見出し(H2)のレイアウト調整 */
+h2 {
+    display: flex;
+    align-items: center;
+}
+
+/* ▼アイコンのスタイル */
+.toggle-icon {
+    display: inline-block;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+/* セクションが閉じている時の▼アイコン（右向きに回転）*/
+.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+/* 開閉するコンテンツエリアのスタイル */
+.section-content {
+    /* アニメーションのための設定 */
+    max-height: 1000px; /* 十分な高さを確保 */
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+    padding-top: 1.5rem; /* 見出しとの隙間 */
+}
+
+/* セクションが閉じている時のコンテンツエリア */
+.collapsed .section-content {
+    max-height: 0;
+    padding-top: 0;
+}
