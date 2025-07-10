@@ -79,3 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 });
+// --- ここから追加 ---
+
+// --- 3. セクション開閉機能 ---
+
+const toggleIcons = document.querySelectorAll('.toggle-icon');
+
+toggleIcons.forEach(icon => {
+    // ▼アイコンがクリックされた時のイベント
+    icon.addEventListener('click', () => {
+        // クリックされたアイコンの親の親（.draggable-section）を取得
+        const section = icon.closest('.draggable-section');
+        // .collapsedクラスを付けたり外したりする
+        section.classList.toggle('collapsed');
+    });
+});
