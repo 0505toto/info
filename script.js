@@ -1,108 +1,114 @@
-// GSAPでアニメーションを動かすために、使用するプラグインを最初に登録します
-gsap.registerPlugin(ScrollTrigger, Flip);
+/* ===== 全体設定 ===== */
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #f0f0f0;
+}
+* {
+    box-sizing: border-box;
+}
 
-/* ======================================= */
-/* ▼▼ 1つ目のアニメーション (FLIP) の処理 ▼▼ */
-/* ======================================= */
-// アニメーションの対象を #flip-animation-section 内に限定します
-const flipSection = document.querySelector("#flip-animation-section");
-if (flipSection) {
-    const container = flipSection.querySelector(".container");
-    const letters = flipSection.querySelectorAll(".letter");
-    const forText = flipSection.querySelector(".for");
-    const gsapText = flipSection.querySelector(".gsap");
-    
-    // 状態を保存（色や背景色もアニメーションの対象に含める）
-    const state = Flip.getState([letters, forText, gsapText], {props: "color,backgroundColor"});
+/* ============================================= */
+/* ▼▼ スクロール連動ナビゲーションのスタイル ▼▼ */
+/* ============================================= */
+#scroll-navigation {
+    /* 画面の左側に固定で表示 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-left: 5vw;
+    font-family: 'Saira Extra Condensed', sans-serif;
+    color: #333;
+    /* コンテンツより手前に表示 */
+    z-index: 10;
+}
 
-    // いったんシンプルな状態にクラスを変更
-    container.classList.remove("final");
-    container.classList.add("plain");
+#scroll-navigation .cols2 {
+    display: flex;
+}
 
-    // "F L I P" の文字をコンテナの末尾に移動させて整列
-    letters.forEach(letter => container.appendChild(letter));
+#scroll-navigation h1 {
+    margin: 0;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: clamp(30px, 8vw, 60px);
+}
 
-    // 保存した状態（final）から現在の状態（plain）へアニメーション
-    Flip.from(state, {
-        duration: 0.5,
-        stagger: 0.08,
-        ease: "power1.inOut"
-    });
+#scroll-navigation ul.navigator {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
 
-    // 1秒待ってから次のアニメーションへ
-    setTimeout(() => {
-        const state = Flip.getState([letters, forText, gsapText], {props: "color,backgroundColor"});
-        container.classList.remove("plain");
-        container.classList.add("grid"); // グリッド表示へ
+#scroll-navigation li {
+    padding-left: 0.2em;
+    line-height: 1.1;
+}
 
-        Flip.from(state, {
-            duration: 0.5,
-            stagger: 0.08,
-            ease: "power1.inOut"
-        });
+/* ▼▼ ナビゲーションリンクのスタイル ▼▼ */
+#scroll-navigation li a {
+    display: inline-block;
+    font-size: clamp(30px, 8vw, 60px);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    color: #ccc; /* 通常時の色を薄く */
+    transition: color 0.3s ease;
+}
 
-        // さらに1.2秒待ってから最後のアニメーションへ
-        setTimeout(() => {
-            const state = Flip.getState([letters, forText, gsapText], { props: "color,backgroundColor" });
-            
-            // 最終形態（final）に戻す
-            container.classList.remove("grid");
-            container.classList.add("final");
-
-            // "for" と "gsap" のテキストを正しい順序に戻す
-            const pLetter = flipSection.querySelector('.p');
-            pLetter.insertAdjacentElement('afterend', forText);
-            forText.insertAdjacentElement('afterend', gsapText);
-
-            Flip.from(state, {
-                duration: 0.7,
-                stagger: 0.08,
-                ease: "power2.inOut"
-            });
-        }, 1200);
-
-    }, 1000);
+/* ▼▼ 現在地をハイライトするスタイル ▼▼ */
+#scroll-navigation li a.is-active {
+    color: #0896a6; /* アクティブなリンクの色 */
 }
 
 
-/* ========================================= */
-/* ▼▼ 2つ目のアニメーション (スクロール) の処理 ▼▼ */
-/* ========================================= */
-// アニメーションの対象を #scroll-animation-section 内に限定します
-const scrollSection = document.querySelector("#scroll-animation-section");
-if (scrollSection) {
-    const listItems = scrollSection.querySelectorAll("li > span");
-    const otherListItems = scrollSection.querySelectorAll("li:not(:first-of-type) span");
-    const h1 = scrollSection.querySelector("h1");
-    const lastListItem = scrollSection.querySelector("li:last-of-type");
-
-    // 初期状態を設定
-    gsap.set(listItems, { transformOrigin: "0 50%" });
-    gsap.set(otherListItems, { opacity: 0.2, scale: 0.8 });
-
-    // スクロールに応じたアニメーションのタイムラインを作成
-    const tl = gsap.timeline()
-        .to(otherListItems, {
-            opacity: 1,
-            scale: 1,
-            stagger: 0.5
-        })
-        .to(scrollSection.querySelectorAll("li:not(:last-of-type) span"), {
-            opacity: 0.2,
-            scale: 0.8,
-            stagger: 0.5
-        }, 0); // タイムラインの先頭から同時に開始
-
-    // ScrollTriggerを作成
-    ScrollTrigger.create({
-        trigger: h1,              // アニメーション開始のきっかけとなる要素
-        start: "center center",   // trigger要素が画面中央に来たら開始
-        endTrigger: lastListItem, // アニメーション終了のきっかけとなる要素
-        end: "center center",     // endTrigger要素が画面中央に来たら終了
-        pin: h1,                  // アニメーション中、h1要素を画面に固定する
-        pinSpacing: true,         // pinによるスペースを確保
-        animation: tl,            // このタイムラインを再生
-        scrub: true,              // スクロール量に応じてアニメーションを進める
-        markers: false            // 開発中の目印（不要な場合はfalseに）
-    });
+/* ============================================= */
+/* ▼▼ 社内リンク集コンテンツのスタイル ▼▼ */
+/* ============================================= */
+.portal-contents {
+    /* ナビゲーションの分だけ右側に配置 */
+    width: 50%;
+    margin-left: 50%;
+    padding: 5vh 5vw;
 }
+
+.item_base_simple_linklist_grn_tpl {
+    margin-bottom: 30px;
+    padding: 20px 25px;
+    background: #edf4fb;
+    border-radius: 4px;
+    border-left: 5px solid transparent; /* ハイライト用の左線を準備 */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ▼▼ 現在地をハイライトするスタイル ▼▼ */
+.item_base_simple_linklist_grn_tpl.is-active-section {
+    border-left-color: #0896a6;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* --- (以下、既存のリンク集スタイル) --- */
+.content_simple_linklist_grn_tpl .title_l_simple_linklist_grn_tpl {
+    display: block; min-height: 26px; margin: 5px 0; padding: 10px 0 0 40px; line-height: 1.2;
+    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHBhdGggZmlsbD0ibm9uZSIgZD0iTTAgMGgzMnYzMkgweiIvPjxwYXRoIGQ9Ik0zMS4xNCAxNkExNS4yNCAxNS4yNCAwIDEgMSAxNS45Ljc4IDE1LjI0IDE1LjI0IDAgMCAxIDMxLjE0IDE2ek0xNS44OCA5Ljg2QTYuMTUgNi4xNSAwIDEgMCAyMiAxNmE2LjE1IDYuMTUgMCAwIDAtNi4xMi02LjE0eiIgZmlsbD0iIzY0YmRkNCIvPjwvc3ZnPgo=") no-repeat left 4px;
+    background-size: 32px 32px; font-size: 20px; color: #888;
+}
+.content_simple_linklist_grn_tpl .title_m_simple_linklist_grn_tpl {
+    display: block; margin: 10px 0 3px 40px; line-height: 1.2; font-size: 20px; font-weight: 700; color: #0896a6;
+}
+.item_base_simple_linklist_grn_tpl ul { margin: 0; padding: 0; }
+.item_simple_linklist_grn_tpl { margin: 0 0 13px 47px; list-style: none; color: #666; word-break: break-all; }
+.link_simple_linklist_grn_tpl {
+    margin-bottom: 2px; padding-left: 16px; font-size: 18px;
+    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiPjxwYXRoIGZpbGw9Im5vbmUiIGQ9Ik0wIDBoOHY4SDB6Ii8+PGNpcmNsZSBjeD0iMy45OSIgY3k9IjQuMDIiIHI9IjMuOTgiIGZpbGw9IiNjY2MiLz48L3N2Zz4K") no-repeat left 7px;
+    background-size: 8px 8px;
+}
+.link_simple_linklist_grn_tpl a { color: #0066cc; }
+.link_simple_linklist_grn_tpl a:hover { text-decoration: underline; }
+.item_description_simple_linklist_grn_tpl { margin-left: 21px; line-height: 1.3; font-size: 14px; color: #666; }
