@@ -1,292 +1,62 @@
-/* ============================================= */
-/* ▼▼ 全体的な設定とGoogle Fonts ▼▼ */
-/* ============================================= */
-@import url('https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@800&family=Staatliches&display=swap');
+// 使用するGSAPプラグインを登録（ScrollToPluginを追加）
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-/* アニメーションで使う色の変数を定義 */
-:root {
-    --color-blue: #85b9ee;
-    --color-pink: #f7a2d3;
-    --color-ui-blue-lt: #8ce2ec;
-    --color-ui-blue: #32a1b8;
-    --color-surface-white: #fff;
-}
+// 1. ナビゲーションリンクをクリックしたら、該当セクションへスムーズにスクロール
+const navLinks = gsap.utils.toArray("#scroll-navigation .navigator li a");
 
-* {
-    box-sizing: border-box;
-}
-
-/* ページ全体の背景色やフォントを設定 */
-body {
-    margin: 0;
-    font-family: sans-serif; /* 基本のフォント */
-    background-color: #f0f0f0; /* 全体の背景色を少しグレーに */
-}
+navLinks.forEach(link => {
+    link.addEventListener("click", e => {
+        e.preventDefault(); // デフォルトのアンカー動作をキャンセル
+        const targetId = e.currentTarget.getAttribute("href");
+        gsap.to(window, {
+            duration: 1.2, // スクロールの時間
+            scrollTo: {
+                y: targetId,
+                offsetY: 50 // 少し手前で止まるように調整
+            },
+            ease: "power2.inOut" // スクロールの緩急
+        });
+    });
+});
 
 
-/* ============================================= */
-/* ▼▼ 1つ目のアニメーション (FLIP) のスタイル ▼▼ */
-/* ============================================= */
-#flip-animation-section {
-    height: 100vh; /* このセクションの高さを画面100%に */
-    width: 100%;
-    overflow: hidden; /* このセクション内ではスクロールバーを隠す */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative; /* GSAPロゴの位置基準のため */
-    background-color: #111; /* 背景色を黒に */
-}
+// 2. スクロールに応じて、ナビゲーションとコンテンツをハイライト
+const contentSections = gsap.utils.toArray(".portal-contents .item_base_simple_linklist_grn_tpl");
 
-#flip-animation-section .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-}
+contentSections.forEach(section => {
+    const targetLink = document.querySelector(`.navigator a[href="#${section.id}"]`);
 
-#flip-animation-section .container.grid,
-#flip-animation-section .container.columns {
-    align-content: stretch;
-    align-items: stretch;
-    flex-wrap: wrap;
-}
+    ScrollTrigger.create({
+        trigger: section,
+        start: "top center", // セクションの上端が画面中央に来たら
+        end: "bottom center", // セクションの下端が画面中央を過ぎたら
+        // ハイライトを切り替える
+        onToggle: self => {
+            if (self.isActive) {
+                // アクティブになった時の処理
+                navLinks.forEach(link => link.classList.remove("is-active"));
+                contentSections.forEach(sec => sec.classList.remove("is-active-section"));
 
-#flip-animation-section .letter {
-    font-family: 'Staatliches', cursive; /* アニメーション用のフォント */
-    text-align: center;
-    color: black;
-    font-size: 10vmax;
-    font-weight: 400;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px 6px;
-}
-#flip-animation-section .container.grid .letter { flex-basis: 50%; }
-#flip-animation-section .container.columns .letter { flex-basis: 25%; }
-
-#flip-animation-section .for,
-#flip-animation-section .gsap {
-    font-family: 'Staatliches', cursive;
-    font-size: 5vmax;
-    color: var(--color-surface-white);
-}
-
-#flip-animation-section .for {
-    padding: 2px 1.6vmax;
-    font-weight: 300;
-    display: none;
-}
-
-#flip-animation-section .gsap {
-    padding: 2px 0;
-    font-weight: 600;
-    display: none;
-}
-
-#flip-animation-section .container.final .for,
-#flip-animation-section .container.final .gsap {
-    display: block;
-}
-
-#flip-animation-section .F { background: var(--color-blue); }
-#flip-animation-section .l { background: var(--color-pink); }
-#flip-animation-section .i { background: var(--color-ui-blue-lt); }
-#flip-animation-section .p { background: var(--color-ui-blue); }
-
-#flip-animation-section .container.plain .letter {
-    background: transparent;
-    color: var(--color-surface-white);
-    padding: 0;
-}
-
-#flip-animation-section .logo {
-    position: absolute;
-    width: 100px;
-    bottom: 20px;
-    right: 30px;
-}
+                targetLink.classList.add("is-active");
+                section.classList.add("is-active-section");
+            }
+        },
+    });
+});
 
 
-/* ============================================= */
-/* ▼▼ お客様の既存のスタイル (社内リンク集) ▼▼ */
-/* ============================================= */
-.base_simple_linklist_grn_tpl {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    margin: 0 auto;
-    padding: 15px 15px 5px;
-    line-height: 1.4;
-    background: #fff;
-    max-width: 1200px; /* 横幅が広がりすぎないように最大幅を設定 */
-}
+// 3. 元々のスクロールアニメーション（見た目のため）
+// これは見た目の演出なので、不要ならこのブロックごと削除してもOK
+const listItems = gsap.utils.toArray("#scroll-navigation .navigator li");
+gsap.set("#scroll-navigation .navigator li:not(:first-of-type)", { opacity: 0.3, scale: 0.9 });
+const timeline = gsap.timeline()
+    .to("#scroll-navigation .navigator li:not(:first-of-type)", { opacity: 1, scale: 1, stagger: 0.5 })
+    .to("#scroll-navigation .navigator li:not(:last-of-type)", { opacity: 0.3, scale: 0.9, stagger: 0.5 }, 0);
 
-.content_simple_linklist_grn_tpl {
-    flex-basis: 50%;
-    box-sizing: border-box;
-}
-
-.content_right_simple_linklist_grn_tpl {
-    margin-left: 30px;
-}
-
-.item_base_simple_linklist_grn_tpl {
-    margin-bottom: 30px;
-    padding: 10px 25px 10px 15px;
-    background: #edf4fb;
-    border-radius: 4px;
-    word-break: break-all;
-}
-
-.content_simple_linklist_grn_tpl .title_l_simple_linklist_grn_tpl {
-    display: block;
-    min-height: 26px;
-    margin: 5px 0;
-    padding: 10px 0 0 40px;
-    line-height: 1.2;
-    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHBhdGggZmlsbD0ibm9uZSIgZD0iTTAgMGgzMnYzMkgweiIvPjxwYXRoIGQ9Ik0zMS4xNCAxNkExNS4yNCAxNS4yNCAwIDEgMSAxNS45Ljc4IDE1LjI0IDE1LjI0IDAgMCAxIDMxLjE0IDE2ek0xNS44OCA5Ljg2QTYuMTUgNi4xNSAwIDEgMCAyMiAxNmE2LjE1IDYuMTUgMCAwIDAtNi4xMi02LjE0eiIgZmlsbD0iIzY0YmRkNCIvPjwvc3ZnPgo=") no-repeat left 4px;
-    background-size: 32px 32px;
-    font-size: 20px;
-    color: #888;
-}
-
-.content_simple_linklist_grn_tpl .title_m_simple_linklist_grn_tpl {
-    display: block;
-    margin: 10px 0 3px 40px;
-    line-height: 1.2;
-    font-size: 20px;
-    font-weight: 700;
-    color: #0896a6;
-}
-
-.item_base_simple_linklist_grn_tpl ul {
-    margin: 0;
-    padding: 0;
-}
-
-.item_simple_linklist_grn_tpl {
-    margin: 0 0 13px 47px;
-    list-style: none;
-    color: #666;
-    word-break: break-all;
-}
-
-.link_simple_linklist_grn_tpl {
-    margin-bottom: 2px;
-    padding-left: 16px;
-    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiPjxwYXRoIGZpbGw9Im5vbmUiIGQ9Ik0wIDBoOHY4SDB6Ii8+PGNpcmNsZSBjeD0iMy45OSIgY3k9IjQuMDIiIHI9IjMuOTgiIGZpbGw9IiNjY2MiLz48L3N2Zz4K") no-repeat left 7px;
-    background-size: 8px 8px;
-    font-size: 18px;
-}
-
-.link_simple_linklist_grn_tpl a { color: #0066cc; } /* リンクの色を青に */
-.link_simple_linklist_grn_tpl a:hover { text-decoration: underline; } /* ホバー時に下線 */
-
-
-.link_simple_linklist_grn_tpl00 {
-    margin-bottom: 8px;
-    padding-left: 16px;
-    background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiPjxwYXRoIGZpbGw9Im5vbmUiIGQ9Ik0wIDBoOHY4SDB6Ii8+PGNpcmNsZSBjeD0iMy45OSIgY3k9IjQuMDIiIHI9IjMuOTgiIGZpbGw9IiNjY2MiLz48L3N2Zz4K") no-repeat left 7px;
-    background-size: 7px 7px;
-    font-size: 15px;
-    line-height: 25px
-}
-
-.link_simple_linklist_grn_tpl00 a { color: #0066cc; } /* リンクの色を青に */
-.link_simple_linklist_grn_tpl00 a:hover { text-decoration: underline; } /* ホバー時に下線 */
-
-
-.item_description_simple_linklist_grn_tpl {
-    margin-left: 21px;
-    line-height: 1.3;
-    font-size: 14px;
-    color: #666;
-}
-
-.item_base_simple_linklist_grn_tpl .item_sub_simple_linklist_grn_tpl {
-    margin-left: 22px;
-}
-
-.item_sub_simple_linklist_grn_tpl li {
-    list-style: none;
-}
-
-.item_sub_simple_linklist_grn_tpl .link_simple_linklist_grn_tpl {
-    margin: 5px 0;
-}
-
-.item_sub_simple_linklist_grn_tpl .item_description_simple_linklist_grn_tpl {
-    margin-top: -5px;
-}
-
-.content_partition_simple_linklist_grn_tpl {
-    border-top: 1px dashed #b9b9b9;
-    margin: 15px 0 20px 40px;
-    height: 0;
-    line-height: 0;
-    font-size: 0;
-}
-
-
-/* ============================================= */
-/* ▼▼ 2つ目のアニメーション (スクロール) のスタイル ▼▼ */
-/* ============================================= */
-#scroll-animation-section {
-    font-family: 'Saira Extra Condensed', sans-serif;
-    color: #333; /* 文字色を濃いグレーに */
-}
-
-#scroll-animation-section .spacer {
-    color: #2d2d3f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #eaf3fa;
-    margin-bottom: 80px;
-    font-size: 40px;
-}
-
-#scroll-animation-section .cols2 {
-    padding-left: 20px;
-    display: flex;
-    max-width: 1200px; /* 横幅が広がりすぎないように */
-    margin: 0 auto; /* 中央寄せ */
-}
-
-#scroll-animation-section h1,
-#scroll-animation-section ul,
-#scroll-animation-section li {
-    margin: 0;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    line-height: 1;
-    font-size: clamp(30px, 8vw, 60px);
-}
-
-#scroll-animation-section h1 {
-    flex-grow: 0;
-    align-self: flex-start;
-}
-
-#scroll-animation-section ul {
-    list-style-type: none;
-    padding-left: 0;
-}
-
-#scroll-animation-section li {
-    scroll-snap-align: center;
-    padding-left: 0.2em;
-}
-
-#scroll-animation-section li > span {
-    display: inline-block;
-}
-
-#scroll-animation-section .brand {
-    padding: 20px 0;
-}
+ScrollTrigger.create({
+    trigger: "#scroll-navigation",
+    start: "top top",
+    end: "bottom bottom",
+    scrub: true,
+    animation: timeline
+});
